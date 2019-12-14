@@ -31,10 +31,8 @@
 	<pre><b>Size</b> <div id="num"></div></pre>
 </div>
 <script>
-	
-console.log("Started execution at", new Date().getTime());
 mapboxgl.accessToken = 'pk.eyJ1IjoiYW5kcmV3ZnJlbmNoIiwiYSI6ImNqd2g2bGhhYjFzNjk0OXBzdG56a3BoeHIifQ.Z52mxQhTMJkg6GmPvEOybg';
-
+var digestUrl = "https://map.afren.ch/data/digest.json"
 var mapOptions = {
 	container: 'map',
 	style: 'mapbox://styles/andrewfrench/cjwh6n2474cdd1cqeklcaaiuj',
@@ -43,86 +41,76 @@ var mapOptions = {
 	minZoom: 2,
 	maxZoom: 11,
 };
-
+var layerOptions = {
+	"id": "location-features",
+	"type": "heatmap",
+	"source": "locations",
+	"paint": {
+		"heatmap-color": [
+			"step",
+			["heatmap-density"],
+			"rgba(0, 0, 255, 0)",
+			0.1, "royalblue",
+			0.3, "cyan",
+			0.5, "lime",
+			0.7, "yellow",
+			1, "red"
+		],
+		"heatmap-opacity": 0.75,
+		"heatmap-radius": [
+			"interpolate",
+			["exponential", 1.5],
+			["zoom"],
+			0, 8,
+			12, 10
+		],
+		"heatmap-weight": {
+			type: "exponential",
+			stops: [
+				[1, 0.3],
+				[100, 0.3],
+				[1000, 1]
+			]
+		}
+	}
+}
 var geoJson = {};
-var z = new XMLHttpRequest();
-z.open("GET", "https://map.afren.ch/data/digest.json");
-z.responseType = "json";
-z.onreadystatechange = function() {
-	if (z.readyState == 4 && z.status == 200) {
+superagent.get(digestUrl)
+	.then(res => {
 		now = new Date().getTime();
-		console.log("Received data at", now);
-		document.getElementById("num").innerHTML = z.response["size"];
-		firstAgo = (((now/1000) - z.response["firstTimestamp"]) / (60*60*24)).toFixed(0);
-		lastAgo = (((now/1000) - z.response["lastTimestamp"]) / (60*60)).toFixed(0);
-		generatedAgo = (((now/1000) - z.response["generatedAt"]) / (60*60)).toFixed(0);
+		document.getElementById("num").innerHTML = res.body["size"];
+		firstAgo = (((now/1000) - res.body["firstTimestamp"]) / (60*60*24)).toFixed(0);
+		lastAgo = (((now/1000) - res.body["lastTimestamp"]) / (60*60)).toFixed(0);
+		generatedAgo = (((now/1000) - res.body["generatedAt"]) / (60*60)).toFixed(0);
 		document.getElementById("first").innerHTML = ( firstAgo > 1 ? firstAgo + " days" : "1 day" ) + " ago";
 		document.getElementById("last").innerHTML = ( lastAgo > 1 ? lastAgo + " hours": "1 hour" ) + " ago";
 		document.getElementById("generated").innerHTML = ( generatedAgo > 1 ? generatedAgo + " hours" : "1 hour" )+ " ago";
-
 		geoJsonPoints = new Array();
-		for (i = 0; i < z.response["points"].length; i++) {
+		for (i = 0; i < res.body["points"].length; i++) {
 			geoJsonPoints.push({
 				"type": "Feature",
 				"geometry": {
 					"type": "Point",
-					"coordinates": [z.response["points"][i]["lng"], z.response["points"][i]["lat"]]
+					"coordinates": [res.body["points"][i]["lng"], res.body["points"][i]["lat"]]
 				}
 			})
 		};
-
 		geoJson = {
 			"type": "FeatureCollection",
 			"features": geoJsonPoints
 		};
-
 		var map = new mapboxgl.Map(mapOptions);
-		console.log("Initiated map at", new Date().getTime());
-
 		map.on('load', function() {
 			map.addSource('locations', {
 				"type": "geojson",
 				"data": geoJson
 			});
-
-			map.addLayer({
-				"id": "location-features",
-				"type": "heatmap",
-				"source": "locations",
-				"paint": {
-					"heatmap-color": [
-						"step",
-						["heatmap-density"],
-						"rgba(0, 0, 255, 0)",
-						0.1, "royalblue",
-						0.3, "cyan",
-						0.5, "lime",
-						0.7, "yellow",
-						1, "red"
-					],
-					"heatmap-opacity": 0.75,
-					"heatmap-radius": [
-						"interpolate",
-						["exponential", 1.5],
-						["zoom"],
-						0, 8,
-						12, 10
-					],
-					"heatmap-weight": {
-						type: "exponential",
-						stops: [
-							[1, 0.3],
-							[100, 0.3],
-							[1000, 1]
-						]
-					}
-				}
-			});
+			map.addLayer(layerOptions);
 		});
-	}
-}
-z.send("");
-
+	})
+	.catch(err => {
+		alert(err.message)
+	})
 </script>
 </body>
 </html>
