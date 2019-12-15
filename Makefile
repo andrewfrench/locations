@@ -20,6 +20,6 @@ deploy: build package
 deploy-static:
 	@echo "Deploying static site version $(version)"
 	$(shell sed -i -e 's,var version = ".*" // inserted by make,var version = "$(version)" // inserted by make,' ./static/index.html)
-	# aws s3 cp ./static/index.html  s3://afrench-locations/index.html
-	# aws cloudfront create-invalidation --distribution-id E3BO48FU8DO9Z6 --paths /index.html --paths /version.txt
+	aws s3 cp ./static/index.html  s3://afrench-locations/index.html
+	aws cloudfront create-invalidation --distribution-id E3BO48FU8DO9Z6 --paths /index.html --paths /version.txt
 
