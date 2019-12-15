@@ -29,8 +29,10 @@
 	<pre><b>First data point</b> <div id="first"></div></pre>
 	<pre><b>Last data point</b> <div id="last"></div></pre>
 	<pre><b>Size</b> <div id="num"></div></pre>
+	<pre><div id="version"></div></pre>
 </div>
 <script>
+var version = "v2019.12.15.230722" // inserted by make
 mapboxgl.accessToken = "pk.eyJ1IjoiYW5kcmV3ZnJlbmNoIiwiYSI6ImNrNDZhZ29hYzBmNjUzbG1ubmYzdWNscXgifQ.PsRxHiw1rREV2m0wWpz4UQ"
 var digestUrl = "https://map.afren.ch/data/digest.json"
 var mapOptions = {
@@ -78,6 +80,7 @@ var geoJson = {};
 superagent.get(digestUrl)
 	.then(res => {
 		now = new Date().getTime();
+		document.getElementById("version").innerHTML = version
 		document.getElementById("num").innerHTML = res.body["size"];
 		firstAgo = (((now/1000) - res.body["firstTimestamp"]) / (60*60*24)).toFixed(0);
 		lastAgo = (((now/1000) - res.body["lastTimestamp"]) / (60*60)).toFixed(0);
