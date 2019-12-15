@@ -24,17 +24,6 @@ func main() {
 			return "", nil
 		}
 
-		//accuracyLimit, err := env.AccuracyLimit()
-		//if err != nil {
-		//	return "", err
-		//}
-
-		//if le.Accuracy >= accuracyLimit {
-		//	fmt.Printf("Reported accuracy (%d) meets or exceeds accuracy limit (%d), data will not be recorded\n", le.Accuracy, accuracyLimit)
-		//
-		//	return "", nil
-		//}
-
 		tableName, err := env.LocationsTable()
 		if err != nil {
 			return "", err
@@ -56,17 +45,16 @@ func main() {
 			Item:      avm,
 		})
 		for err != nil {
+			// If the PutItem failed, try again with a small delay until the lambda expires.
 			_, err = dCli.PutItem(&dynamodb.PutItemInput{
 				TableName: &tableName,
 				Item:      avm,
 			})
 
-			time.Sleep(10 * time.Second)
+			time.Sleep(5 * time.Second)
 		}
-
 		fmt.Println("Put record")
 
 		return "", nil
 	})
-	fmt.Println("Exiting Lambda")
 }
