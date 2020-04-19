@@ -10,71 +10,85 @@
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.css' rel='stylesheet' />
     <style>
         body { margin:0; padding:0; }
-        #map { position:absolute; top:0; bottom:0; width:100%; }
-		#info {
-			width: 1px;
-			height: 1px;
-			padding: 0px 10px;
-			background-color: rbga(255, 255, 255, 0.5);
-			position: fixed;
-			left: 0;
-			top: 0;
-		}
+        #map {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: 100%;
+		background-color: #242525;
+	}
+	#info {
+		color: #ccc;
+		width: 1px;
+		height: 1px;
+		padding: 0px 10px;
+		position: fixed;
+		left: 0;
+		top: 0;
+	}
     </style>
 </head>
 <body>
 <div id='map'></div>
 <div id='info'>
-	<pre><version>v2019.12.16.004627</version></pre>
-	<pre><b>Generated</b> <div id="generated"></div></pre>
-	<pre><b>First data point</b> <div id="first"></div></pre>
-	<pre><b>Last data point</b> <div id="last"></div></pre>
-	<pre><b>Points</b> <div id="num"></div></pre>
+	<pre><version>v2020.04.19.004152</version></pre>
+	<pre><b>Generated</b><div id="generated"><i>Loading...</i></div></pre>
+	<pre><b>First record</b><div id="first"><i>Loading...</i></div></pre>
+	<pre><b>Last record</b><div id="last"><i>Loading...</i></div></pre>
+	<pre><b>Points</b><div id="num"><i>Loading...</i></div></pre>
 </div>
 <script>
-mapboxgl.accessToken = "pk.eyJ1IjoiYW5kcmV3ZnJlbmNoIiwiYSI6ImNrNDZhZ29hYzBmNjUzbG1ubmYzdWNscXgifQ.PsRxHiw1rREV2m0wWpz4UQ"
-var digestUrl = "https://map.afren.ch/data/digest.json"
+mapboxgl.accessToken = "pk.eyJ1IjoiYW5kcmV3ZnJlbmNoIiwiYSI6ImNrNDZhazB1ODBpZDAzZ28xdHd5bHNrb28ifQ.QhjFyb7aaV6n6kYIG3Vukw";
+var digestUrl = "https://map.afren.ch/data/digest.json";
 var mapOptions = {
-	container: 'map',
-	style: 'mapbox://styles/andrewfrench/cjwh6n2474cdd1cqeklcaaiuj',
+	container: "map",
+	style: "mapbox://styles/andrewfrench/ck8z9c96s067j1ioc37hrkjl4",
 	center: [-127, 46],
 	zoom: 2,
 	minZoom: 2,
 	maxZoom: 11,
 };
-var layerOptions = {
-	"id": "location-features",
+var pointLayer = {
+	"id": "pointLayer",
+	"type": "circle",
+	"source": "locations",
+	"minzoom": 7,
+	"paint": {
+		"circle-color": "#ffc038",
+		"circle-radius": 1,
+		"circle-opacity": 0.9
+	}
+};
+var heatmapLayer = {
+	"id": "heatmapLayer",
 	"type": "heatmap",
 	"source": "locations",
 	"paint": {
-		"heatmap-color": [
-			"step",
-			["heatmap-density"],
-			"rgba(0, 0, 255, 0)",
-			0.1, "royalblue",
-			0.3, "cyan",
-			0.5, "lime",
-			0.7, "yellow",
-			1, "red"
+		"heatmap-intensity": [
+			"interpolate",
+			["exponential", 4],
+			["zoom"],
+			2, 0.1,
+			11, 1
 		],
-		"heatmap-opacity": 0.75,
+		"heatmap-color": [
+			"interpolate",
+			["linear"],
+			["heatmap-density"],
+			0, "rgba(0,0,0,0)",
+			0.4, "#ffc038",
+			1, "#ffffff"
+		],
 		"heatmap-radius": [
 			"interpolate",
-			["exponential", 1.5],
+			["linear"],
 			["zoom"],
-			0, 8,
-			12, 10
+			0, 6,
+			11, 4
 		],
-		"heatmap-weight": {
-			type: "exponential",
-			stops: [
-				[1, 0.3],
-				[100, 0.3],
-				[1000, 1]
-			]
-		}
+		"heatmap-opacity": 1
 	}
-}
+};
 var geoJson = {};
 superagent.get(digestUrl)
 	.then(res => {
@@ -106,7 +120,8 @@ superagent.get(digestUrl)
 				"type": "geojson",
 				"data": geoJson
 			});
-			map.addLayer(layerOptions);
+			map.addLayer(pointLayer);
+			map.addLayer(heatmapLayer);
 		});
 	})
 	.catch(err => {
@@ -115,3 +130,4 @@ superagent.get(digestUrl)
 </script>
 </body>
 </html>
+
