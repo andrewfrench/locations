@@ -15,7 +15,6 @@ import (
 )
 
 func main() {
-	fmt.Println("Entering Lambda")
 	lambda.Start(func(ctx context.Context, le owntracks.Location) (string, error) {
 		fmt.Printf("Message type: %s\n", le.Type)
 		if le.Type != owntracks.TypeLocation {

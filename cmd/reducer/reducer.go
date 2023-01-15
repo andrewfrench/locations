@@ -1,17 +1,18 @@
 package main
 
 import (
-	"fmt"
+	"bytes"
+	"github.com/aws/aws-lambda-go/lambda"
+	"strings"
 	"time"
 
 	"github.com/andrewfrench/locations/pkg/common"
 
 	"github.com/apex/log"
 
-	"github.com/aws/aws-lambda-go/lambda"
-
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 
+	"github.com/andrewfrench/ghcomp/pkg/ghcomp"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -29,29 +30,52 @@ func main() {
 		dwn := s3manager.NewDownloader(sess)
 		upl := s3manager.NewUploader(sess)
 
-		// Points are stored as a map of reportedTimestamp -> geoHash
-		points := map[string]string{}
-		err = common.LoadCacheFromS3(dwn, &points)
+		digest, err := common.LoadDigestFromS3(dwn)
 		if err != nil {
 			panic(err)
 		}
 
-		fromTime := fmt.Sprintf("%d", time.Now().Add(time.Duration(-24)*time.Hour).Unix())
-		err = common.LoadRecentsFromDynamoDB(dyn, fromTime, &points)
+		tree := ghcomp.New(common.GeohashPrecision)
+		buf := bytes.NewBuffer(nil)
+		_, err = buf.WriteString(strings.Join(digest.Points, "\n"))
+		if err != nil {
+			log.Fatalf("failed to write string to buffer: %v", err)
+		}
+
+		window := []byte(digest.Points[0])
+		for _, v := range digest.Points {
+			offset := len(window) - len(v)
+			for j := 0; j < len(v); j++ {
+				window[offset+j] = v[j]
+			}
+
+			err = tree.Entree(window)
+			if err != nil {
+				log.Fatalf("failed to entree: %v", err)
+			}
+		}
+
+		first, last, err := common.GetPointsBetween(dyn, tree, time.Now().Add(time.Duration(-24)*time.Hour), time.Now())
 		if err != nil {
 			return err
 		}
 
-		err = common.UploadCacheToS3(upl, &points)
-		if err != nil {
-			return err
+		// Update digest metadata
+		if int(first.Unix()) < digest.FirstTimestamp {
+			digest.FirstTimestamp = int(first.Unix())
 		}
 
-		digest := &common.Digest{}
-		err = common.BuildDigest(points, digest)
-		if err != nil {
-			return err
+		if int(last.Unix()) > digest.LastTimestamp {
+			digest.LastTimestamp = int(last.Unix())
 		}
+
+		digest.Points = make([]string, 0)
+		err = tree.WriteDeflated(digest)
+		if err != nil {
+			log.Fatalf("failed to write deflated geohashes to digest: %v", err)
+		}
+
+		digest.Size = len(digest.Points)
 
 		err = common.UploadDigestToS3(upl, digest)
 		if err != nil {
