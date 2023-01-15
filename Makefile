@@ -1,4 +1,8 @@
 version := $(shell date -u +v%Y.%m.%d.%H%M%S)
+year := $(shell date -u +%Y)
+
+window: ## Generates and uploads a digest for the requested year (e.g. year=2020)
+	go run cmd/window/window.go -year $(year)
 
 bootstrap: ## Executes bootstrap command.
 	go run cmd/bootstrap/bootstrap.go
@@ -34,7 +38,8 @@ deploy/static: ## Deploys index.html to S3 and initiates CloudFront invalidation
 	@echo "Deploying static site version $(version)"
 	$(shell sed -i -e 's,<version>.*</version>,<version>$(version)</version>,' ./static/index.html)
 	aws s3 cp ./static/index.html s3://afrench-locations/index.html
-	aws cloudfront create-invalidation --distribution-id E3BO48FU8DO9Z6 --paths /index.html
+	aws s3 cp --recursive ./static/embed/ s3://afrench-locations/embed
+	aws cloudfront create-invalidation --distribution-id E3BO48FU8DO9Z6 --paths /index.html /embed/*
 
 .DEFAULT_GOAL := help
 .PHONY: help
