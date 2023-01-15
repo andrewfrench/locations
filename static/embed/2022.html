@@ -3,37 +3,33 @@
 <head>
     <meta charset='utf-8' />
     <title>Where I Went</title>
-	<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.css' rel='stylesheet' />
     <style>
         body { margin:0; padding:0; }
         #map {
-		position: absolute;
-		top: 0;
-		bottom: 0;
-		width: 100%;
-		background-color: #242525;
-	}
-	#info {
-		color: #ccc;
-		width: 1px;
-		height: 1px;
-		padding: 0px 10px;
-		position: fixed;
-		left: 0;
-		top: 0;
-	}
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: #242525;
+        }
+        #info {
+            color: #ccc;
+            width: 1px;
+            height: 1px;
+            padding: 0px 10px;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
     </style>
 </head>
 <body>
 <div id='map'></div>
 <div id='info'>
-	<pre><version>v2023.01.15.065218</version></pre>
-	<pre><b>Generated</b><div id="generated"><i>Loading...</i></div></pre>
-	<pre><b>First record</b><div id="first"><i>Loading...</i></div></pre>
-	<pre><b>Last record</b><div id="last"><i>Loading...</i></div></pre>
-	<pre><b>Points</b><div id="num"><i>Loading...</i></div></pre>
+    <pre><b>Points</b><div id="num"><i>Loading...</i></div></pre>
 </div>
 <script>
     // Modified from geohash.js
@@ -100,7 +96,7 @@
     // END geohash.js
 
     mapboxgl.accessToken = "pk.eyJ1IjoiYW5kcmV3ZnJlbmNoIiwiYSI6ImNrNDZhazB1ODBpZDAzZ28xdHd5bHNrb28ifQ.QhjFyb7aaV6n6kYIG3Vukw";
-    var digestUrl = "https://map.afren.ch/data/digest.json";
+    var digestUrl = "https://map.afren.ch/data/2022.json";
     var mapOptions = {
         container: "map",
         style: "mapbox://styles/andrewfrench/ck8z9c96s067j1ioc37hrkjl4",
@@ -123,14 +119,7 @@
     fetch(digestUrl)
         .then((response) => response.json())
         .then((data) => {
-            now = new Date().getTime();
             document.getElementById("num").innerHTML = data["size"];
-            firstAgo = (((now/1000) - data["firstTimestamp"]) / (60*60*24)).toFixed(0);
-            lastAgo = (((now/1000) - data["lastTimestamp"]) / (60*60)).toFixed(0);
-            generatedAgo = (((now/1000) - data["generatedAt"]) / (60*60)).toFixed(0);
-            document.getElementById("first").innerHTML = ( firstAgo > 1 ? firstAgo + " days" : "1 day" ) + " ago";
-            document.getElementById("last").innerHTML = ( lastAgo > 1 ? lastAgo + " hours": "1 hour" ) + " ago";
-            document.getElementById("generated").innerHTML = ( generatedAgo > 1 ? generatedAgo + " hours" : "1 hour" )+ " ago";
             geoJsonPoints = [];
             var win = data["points"][0];
             for (var i = 0; i < data["points"].length; i++) {
