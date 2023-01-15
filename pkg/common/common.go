@@ -20,7 +20,7 @@ import (
 const (
 	Table             = "locations"
 	Bucket            = "afrench-locations"
-	DigestKey         = "digest.json"
+	DigestKey         = "data/digest.json"
 	ReportedTimestamp = "reportedTimestamp"
 	GeoHash           = "geoHash"
 	Region            = "us-west-2"
