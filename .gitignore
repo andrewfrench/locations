@@ -1,6 +1,7 @@
+.idea/
 vendor/*
 bin/*
 static/.ddev/
+static/index.html-e
 
 .DS_Store
-
