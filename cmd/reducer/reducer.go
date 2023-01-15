@@ -61,6 +61,8 @@ func main() {
 		}
 
 		// Update digest metadata
+		digest.GeneratedAt = int(time.Now().Unix())
+
 		if int(first.Unix()) < digest.FirstTimestamp {
 			digest.FirstTimestamp = int(first.Unix())
 		}
