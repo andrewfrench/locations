@@ -31,7 +31,7 @@ const (
 	GeohashPrecision  = 9
 )
 
-var trackerIDs = []string{"8E", "AD"}
+var trackerIDs = []string{"8E", "AD", "FB"}
 
 type Digest struct {
 	Size           int      `json:"size"`
