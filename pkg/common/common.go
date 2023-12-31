@@ -30,8 +30,7 @@ const (
 	Index             = "trackerId-reportedTimestamp-index"
 	GeohashPrecision  = 9
 )
-
-var trackerIDs = []string{"8E", "AD", "FB"}
+var trackerIDs = []string{"8E", "AD", "FB", "3E"}
 
 type Digest struct {
 	Size           int      `json:"size"`
